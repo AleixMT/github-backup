@@ -15,6 +15,7 @@ services:
     volumes:
       - ./backup:/backup
       - ./secrets/id_rsa:/root/.ssh/id_rsa
+      - ./secrets/id_rsa.pub:/root/.ssh/id_rsa.pub
     secrets:
       - gh_token
     command: [ "AleixMT", "-c", "-r"]

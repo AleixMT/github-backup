@@ -13,6 +13,16 @@
 # You should have received a copy of the GNU General Public License along with this program. If not, see
 # http://www.gnu.org/licenses/.
 
+# Performs authentication with ssh if ~/.ssh/id_rsa is present
+ssh_authentication()
+{
+  if [ -f /root/.ssh/id_rsa ]; then
+    echo "INFO: /root/.ssh/id_rsa is present, adding private key to ssh agent"
+    eval "$(ssh-agent -s)"
+    ssh-add /root/.ssh/id_rsa
+  fi
+}
+
 # Obtain the organizations (private or public) that this GitHub user is in. This function reads implicitly the
 # GH_TOKEN variable to know from which user we are listing organizations. It also reads GH_TOKEN for
 # authentication, since it lists both private and public organizations.
@@ -128,6 +138,8 @@ main()
 Aborting."
     exit 1
   fi
+
+  ssh_authentication
 
   # Check the authentication status with GitHub
   if ! gh auth status; then
