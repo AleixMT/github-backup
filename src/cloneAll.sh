@@ -39,7 +39,7 @@ list_org_repos()
 # and public repositories.
 clone_repo()
 {
-  git clone "https://github.com/$1" "$2"
+  git clone "git@github.com:$1.git" "$2"
 }
 
 # - Receives a single github username or organization via $1.
@@ -85,7 +85,8 @@ do_backup()
     echo "${ORG_REPOS}" > "${BACKUP_FOLDER}/$1/${org}/repositories.txt"
     echo "${ORG_REPOS}" >> "${BACKUP_FOLDER}/$1/all_repositories.txt"
     while IFS= read -r repo; do
-      echo "${repo}" "${BACKUP_FOLDER}/$1/${repo}"
+      echo "INFO: Cloning repository ${repo} into ${BACKUP_FOLDER}/$1/${repo} which is BACKUP_FOLDER=${BACKUP_FOLDER},
+\$1=$1, repo=${repo}"
       clone_repo "${repo}" "${BACKUP_FOLDER}/$1/${repo}"
     done < "${BACKUP_FOLDER}/$1/${org}/repositories.txt"
   done < "${BACKUP_FOLDER}/$1/organizations.txt"
@@ -129,15 +130,26 @@ Aborting."
   fi
 
   # Check the authentication status with GitHub
-  authenticated="false"
   if ! gh auth status; then
+    echo "INFO: You are not logged in into GitHub, trying authentications."
+    authenticated="false"
     if [ -n "${GH_TOKEN_FILE}" ]; then
-      gh auth login --with-token < "${GH_TOKEN_FILE}"
-      authenticated="true"
+      echo "INFO: trying authentication with GH_TOKEN_FILE"
+      if gh auth login --with-token < "${GH_TOKEN_FILE}"; then
+        echo "INFO: Authentication with GH_TOKEN_FILE successful"
+        authenticated="true"
+      else
+        echo "WARNING: GH_TOKEN_FILE variable present but authentication failed. Trying other authentications."
+      fi
     fi
     if [ "${authenticated}" = "false" ] && [ -n "${GH_TOKEN}" ]; then
-      echo "${GH_TOKEN}" | gh auth login --with-token
-      authenticated="true"
+      echo "INFO: trying authentication with GH_TOKEN"
+      if echo "${GH_TOKEN}" | gh auth login --with-token; then
+        echo "INFO: Authentication with GH_TOKEN successful"
+        authenticated="true"
+      else
+        echo "WARNING: GH_TOKEN variable present but authentication failed."
+      fi
     fi
     if [ "${authenticated}" = "false" ]; then
       echo "ERROR: GitHub token not found and user is not authenticated in gh command.
@@ -192,4 +204,8 @@ GitHub token and putting it into secrets/GH_TOKEN.txt"
 
 export PROJECT_FOLDER
 PROJECT_FOLDER="$(cd "$(dirname "$(realpath "$0")")/.." &>/dev/null && pwd)"
+# Correct edge case for a container running in the root
+if [ "${PROJECT_FOLDER}" = "/" ]; then
+  PROJECT_FOLDER=""
+fi
 main "$@"

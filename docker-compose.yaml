@@ -14,6 +14,7 @@ services:
       - GH_TOKEN_FILE=/run/secrets/gh_token
     volumes:
       - ./backup:/backup
+      - ./secrets/id_rsa:/root/.ssh/id_rsa
     secrets:
       - gh_token
     command: [ "AleixMT", "-c", "-r"]
