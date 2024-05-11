@@ -95,8 +95,7 @@ do_backup()
     echo "${ORG_REPOS}" > "${BACKUP_FOLDER}/$1/${org}/repositories.txt"
     echo "${ORG_REPOS}" >> "${BACKUP_FOLDER}/$1/all_repositories.txt"
     while IFS= read -r repo; do
-      echo "INFO: Cloning repository ${repo} into ${BACKUP_FOLDER}/$1/${repo} which is BACKUP_FOLDER=${BACKUP_FOLDER},
-\$1=$1, repo=${repo}"
+      echo "INFO: Cloning repository ${repo} into ${BACKUP_FOLDER}/$1/${repo}"
       clone_repo "${repo}" "${BACKUP_FOLDER}/$1/${repo}"
     done < "${BACKUP_FOLDER}/$1/${org}/repositories.txt"
   done < "${BACKUP_FOLDER}/$1/organizations.txt"
@@ -107,23 +106,28 @@ do_backup()
 # Arguments:
 #  - "-r|--no-remove|--no-remove-folder": Do not remove the backup folder after making the backup. Useful if you want to
 #    use the same backup folder and update it over time.
-#  - "-c|--no-compress|--no-compress-folder": Do not compress folder after making the backup. Useful in combination with
+#  - "-n|--no-compress|--no-compress-folder": Do not compress folder after making the backup. Useful in combination with
 #    -r.
+#  - "-c|--clear|--clear-folder": Clear the contents of the backup folder before doing the backup.
 main()
 {
   # Declare argument flags
   NO_COMPRESS="false"
   NO_REMOVE="false"
+  CLEAR_FOLDER="false"
   USERS=()
 
   # Process arguments
   while [ $# -gt 0 ]; do
     case "$1" in
-      -c|--no-compress|--no-compress-folder)
+      -n|--no-compress|--no-compress-folder)
         NO_COMPRESS="true"
       ;;
       -r|--no-remove|--no-remove-folder)
         NO_REMOVE="true"
+      ;;
+      -c|--clear|--clear-folder|--clear-backup-folder-first)
+        CLEAR_FOLDER="true"
       ;;
       *)
         USERS+=("$1")
@@ -195,6 +199,10 @@ GitHub token and putting it into secrets/GH_TOKEN.txt"
 
   # Create and set backup folder.
   BACKUP_FOLDER="${PROJECT_FOLDER}/backup/content"
+  # Clear backup folder if required
+  if [ ${CLEAR_FOLDER} = "true" ]; then
+    rm -rf "${BACKUP_FOLDER}"
+  fi
   mkdir -p "${BACKUP_FOLDER}"
 
   # Do backup for all user and organizations supplied in the arguments
