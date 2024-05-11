@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# - Dependencies: gh, git, dirname, basename, tar
+
 
 # Obtain the organizations (private or public) that this GitHub user is in. This function reads implicitly the
 # GITHUB_TOKEN variable to know from which user we are listing organizations. It also reads GITHUB_TOKEN for
