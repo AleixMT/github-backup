@@ -47,9 +47,13 @@ do_backup()
   list_organizations > "${BACKUP_FOLDER}/$1/organizations.txt"
 
   # Save user repos into a text file with the same name as the github user and the same name and "_repositories" at the
-  # end, for example, if my name if JohnDoe, save it to a file called "JohnDoe_JohnDoe_repositories.txt".
+  # end, for example, if my name if JohnDoe, save it to a file called "JohnDoe_JohnDoe_repositories.txt". Also save it
+  # to the global file of repositories of that user in "${BACKUP_FOLDER}/$1/all_repositories.txt"
   mkdir -p "${BACKUP_FOLDER}/$1/$1"
-  list_user_repos "$1" > "${BACKUP_FOLDER}/$1/$1/repositories.txt"
+  echo "INFO: Listing \"/users/$1/repos\""
+  local -r USER_REPOS="$(list_user_repos "$1")"
+  echo "${USER_REPOS}" > "${BACKUP_FOLDER}/$1/$1/repositories.txt"
+  echo "${USER_REPOS}" > "${BACKUP_FOLDER}/$1/all_repositories.txt"
 
   # Clone all the repos of the $1 user.
   while IFS= read -r repo; do
@@ -58,10 +62,15 @@ do_backup()
 
   # List repos of the organizations that this user is in and save them into a text file into
   # "${BACKUP_FOLDER}/$1/ORGANIZATION/repositories.txt". Then, clone each of the repositories in
-  # "${BACKUP_FOLDER}/$1/ORGANIZATION/REPO"
+  # "${BACKUP_FOLDER}/$1/ORGANIZATION/REPO". Also save the repository names to the global file of repositories in
+  # "${BACKUP_FOLDER}/$1/all_repositories.txt"
   while IFS= read -r org; do
     mkdir -p "${BACKUP_FOLDER}/$1/${org}"
-    list_org_repos "${org}" > "${BACKUP_FOLDER}/$1/${org}/repositories.txt"
+    local ORG_REPOS
+    echo "INFO: Listing \"/orgs/$1/repos\""
+    ORG_REPOS="$(list_org_repos "${org}")"
+    echo "${ORG_REPOS}" > "${BACKUP_FOLDER}/$1/${org}/repositories.txt"
+    echo "${ORG_REPOS}" >> "${BACKUP_FOLDER}/$1/all_repositories.txt"
     while IFS= read -r repo; do
       echo "${repo}" "${BACKUP_FOLDER}/$1/${repo}"
       clone_repo "${repo}" "${BACKUP_FOLDER}/$1/${repo}"
@@ -93,7 +102,7 @@ main()
         NO_REMOVE="true"
       ;;
       *)
-        USERS+="$1"
+        USERS+=("$1")
       ;;
     esac
   shift
@@ -159,4 +168,4 @@ authentication."
 
 export PROJECT_FOLDER
 PROJECT_FOLDER="$(cd "$(dirname "$(realpath "$0")")/.." &>/dev/null && pwd)"
-main $@
+main "$@"
