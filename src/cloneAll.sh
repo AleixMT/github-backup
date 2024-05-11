@@ -69,11 +69,40 @@ do_backup()
   done < "${BACKUP_FOLDER}/$1/organizations.txt"
 }
 
+
+# Does not remove the backup folder afterwards. Useful if you want to update the same backup over
+# Arguments:
+#  - "-r|--no-remove|--no-remove-folder": Do not remove the backup folder after making the backup. Useful if you want to
+#    use the same backup folder and update it over time.
+#  - "-c|--no-compress|--no-compress-folder": Do not compress folder after making the backup. Useful in combination with
+#    -r.
 main()
 {
+  # Declare argument flags
+  NO_COMPRESS="false"
+  NO_REMOVE="false"
+  USERS=()
+
+  # Process arguments
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -c|--no-compress|--no-compress-folder)
+        NO_COMPRESS="true"
+      ;;
+      -r|--no-remove|--no-remove-folder)
+        NO_REMOVE="true"
+      ;;
+      *)
+        USERS+="$1"
+      ;;
+    esac
+  shift
+  done
+
   # Check if $1 is present.
-  if [ -z "$1" ]; then
-    echo "Error: This program needs at least one argument. Aborting."
+  if [ -z "${USERS[*]}" ]; then
+    echo "Error: This program needs at least one argument telling from which github user we are going to do the backup.
+Aborting."
     exit 1
   fi
 
@@ -96,10 +125,12 @@ authentication."
   fi
 
   # Check if the user in $1 exists in github, if it does not exist exit program showing error message.
-  if ! gh api "/users/$1" > /dev/null; then
-    echo "ERROR: Could not use GitHub API due to missing or wrong authentication GitHub user '$1' not found. Aborting."
-    exit 1
-  fi
+  for user in "${USERS[@]}"; do
+    if ! gh api "/users/${user}" > /dev/null; then
+      echo "ERROR: Could not use GitHub API due to missing or wrong authentication GitHub user '$1' not found. Aborting."
+      exit 1
+    fi
+  done
 
   # Create and set mount point folder. The place where we are putting the final compressed file of the backup.
   MOUNT_POINT="${PROJECT_FOLDER}/backup"
@@ -110,16 +141,20 @@ authentication."
   mkdir -p "${BACKUP_FOLDER}"
 
   # Do backup for all user and organizations supplied in the arguments
-  for arg in "$@"
+  for user in "${USERS[@]}"
   do
-    do_backup "${arg}"
+    do_backup "${user}"
   done
 
   # Compress the backup folder
-  tar -czvf "${MOUNT_POINT}/backup.tar.gz" -C "$(dirname "${BACKUP_FOLDER}")" "$(basename "${BACKUP_FOLDER}")"
+  if [ "${NO_COMPRESS}" = "false" ]; then
+    tar -czvf "${MOUNT_POINT}/backup_$(date +"%Y-%m-%d_%H:%M:%S").tar.gz" -C "$(dirname "${BACKUP_FOLDER}")" "$(basename "${BACKUP_FOLDER}")"
+  fi
 
   # Remove content
-  rm -rf "${BACKUP_FOLDER}"
+  if [ "${NO_REMOVE}" = "false" ]; then
+    rm -rf "${BACKUP_FOLDER}"
+  fi
 }
 
 export PROJECT_FOLDER
