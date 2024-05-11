@@ -1,0 +1,23 @@
+---
+version: "3.9"
+services:
+  github-backup:
+    image: aleixmt/github-backup:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    pull_policy: always
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Etc/UTC
+      - GH_TOKEN_FILE=/run/secrets/gh_token
+    volumes:
+      - ./backup:/backup
+    secrets:
+      - gh_token
+    command: [ "AleixMT", "-c", "-r"]
+
+secrets:
+   gh_token:
+     file: ./secrets/GH_TOKEN.txt

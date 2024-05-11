@@ -14,28 +14,28 @@
 # http://www.gnu.org/licenses/.
 
 # Obtain the organizations (private or public) that this GitHub user is in. This function reads implicitly the
-# GITHUB_TOKEN variable to know from which user we are listing organizations. It also reads GITHUB_TOKEN for
+# GH_TOKEN variable to know from which user we are listing organizations. It also reads GH_TOKEN for
 # authentication, since it lists both private and public organizations.
 list_organizations()
 {
   gh api -H "Accept: application/vnd.github+json" /user/orgs --jq ".[].login"
 }
 
-# Obtain the repositories of the GitHub user from $1. It reads GITHUB_TOKEN for authentication, since it lists both
+# Obtain the repositories of the GitHub user from $1. It reads GH_TOKEN for authentication, since it lists both
 # private and public repositories.
 list_user_repos()
 {
   gh api "/users/$1/repos" | jq -r '.[].full_name'
 }
 
-# Obtain the GitHub repositories of the organization in $1. It reads GITHUB_TOKEN for authentication, since it lists
+# Obtain the GitHub repositories of the organization in $1. It reads GH_TOKEN for authentication, since it lists
 # both private and public repositories.
 list_org_repos()
 {
   gh api "/orgs/$1/repos" | jq -r '.[].full_name'
 }
 
-# Clones the repo supplied in $1 in the path $2. It reads GITHUB_TOKEN for authentication, since it clones both private
+# Clones the repo supplied in $1 in the path $2. It reads GH_TOKEN for authentication, since it clones both private
 # and public repositories.
 clone_repo()
 {
@@ -129,19 +129,30 @@ Aborting."
   fi
 
   # Check the authentication status with GitHub
-  if [ -z "$GITHUB_TOKEN" ]; then
-    # Check the exit status of the previous command
-    if ! gh auth status; then
-      # Check if the token GITHUB_TOKEN exists, if it does not exist exit program showing error message.
+  authenticated="false"
+  if ! gh auth status; then
+    if [ -n "${GH_TOKEN_FILE}" ]; then
+      gh auth login --with-token < "${GH_TOKEN_FILE}"
+      authenticated="true"
+    fi
+    if [ "${authenticated}" = "false" ] && [ -n "${GH_TOKEN}" ]; then
+      echo "${GH_TOKEN}" | gh auth login --with-token
+      authenticated="true"
+    fi
+    if [ "${authenticated}" = "false" ]; then
       echo "ERROR: GitHub token not found and user is not authenticated in gh command.
-If you are using this script in a workflow set the environment variable GITHUB_TOKEN with your GitHub token for
+If you are using this script in a workflow set the environment variable GH_TOKEN with your GitHub token for
 the authentication. You can do so by declaring it in your environment variables, in your bashrc or by setting it
 before calling the script:
 
-GITHUB_TOKEN=\"your_github_secret_token\" ./cloneAll.sh
+GH_TOKEN=\"your_github_secret_token\" ./cloneAll.sh
 
 If you are using this script in a user environment you can also issue the command \"gh auth login\" to provide the
-authentication."
+authentication.
+
+If you are running from Docker or from a workflow it is likely that you did not set the GH_TOKEN_FILE environment
+variable, which is the standard way of passing the token to the workflow or container. You can do so by creating a
+GitHub token and putting it into secrets/GH_TOKEN.txt"
       exit 1
     fi
   fi
