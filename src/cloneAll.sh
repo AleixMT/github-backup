@@ -80,6 +80,7 @@ do_backup()
 
   # Clone all the repos of the $1 user.
   while IFS= read -r repo; do
+    echo "INFO: Cloning repository ${repo} into ${BACKUP_FOLDER}/$1/${repo}"
     clone_repo "${repo}" "${BACKUP_FOLDER}/$1/${repo}"
   done < "${BACKUP_FOLDER}/$1/$1/repositories.txt"
 
