@@ -161,3 +161,5 @@ cython_debug/
 backup
 .idea
 secrets
+back1.json
+back1.tar.gz
