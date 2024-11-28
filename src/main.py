@@ -4,6 +4,8 @@
 from datetime import datetime
 import argparse
 import os
+from github import Github
+from github import Auth
 
 
 def is_file_directory_writable(file_path):
@@ -253,10 +255,31 @@ def print_summary(args):
         print("               No")
 
 
+def build_model(args):
+    # using an access token
+    auth = Auth.Token("access_token")
+
+    # First create a Github instance:
+
+    # Public Web Github
+    g = Github(auth=auth)
+
+    # Github Enterprise with custom hostname
+    g = Github(base_url="https://{hostname}/api/v3", auth=auth)
+
+    # Then play with your Github objects:
+    for repo in g.get_user().get_repos():
+        print(repo.name)
+
+    # To close connections after use
+    g.close()
+
+
 def main():
     args = parse_arguments()
     if args.is_verbose:
         print_summary(args)
+    model = build_model(args)
 
 
 if __name__ == "__main__":
