@@ -105,6 +105,9 @@ def parse_arguments():
     parser.add_argument("--exclude-gitlab",
                         action="store_true",
                         help="Exclude GitLab repositories from the backup.")
+    parser.add_argument("--exclude-enterprise",
+                        action="store_true",
+                        help="Exclude \"official\" providers (github.com and gitlab.com).")
     # Positional argument for usernames of the profiles to scrap
     parser.add_argument("usernames",
                         nargs="+",
@@ -189,10 +192,16 @@ def parse_arguments():
         parser.error("File " + args.json_path + " is not writable.")
 
     # Check if at least one source is included
-    if args.exclude_github and args.exclude_gitlab and not args.custom_providers:
-        parser.error("You cannot exclude both GitHub and GitLab and not supply a custom provider. At least one provider"
-                     " must be included.")
+    if args.exclude_github and args.exclude_gitlab:
+        parser.error("You cannot exclude both GitHub and GitLab. At least one provider must be included.")
 
+    if args.custom_providers:
+        custom_providers = []
+        for custom_provider in args.custom_providers:
+            if args.exclude_github:
+                custom_providers.append({'url': custom_provider, 'provider': "GitLab"})
+            if args.exclude_gitlab:
+                custom_providers.append({'url': custom_provider, 'provider': "GitHub"})
     return args
 
 
@@ -203,10 +212,13 @@ def print_summary(args):
         print(f"  - {user}")
 
     print("Using the following providers:")
-    for provider in args.custom_providers:
-        print(f"  - {provider}")
-    print("  - GitHub (github.com)")
-    print("  - GitLab (gitlab.com)")
+    if args.custom_providers:
+        for provider in args.custom_providers:
+            print(f"  - {provider['provider']} ({provider['url']})")
+    if args.exclude_gitlab:
+        print("  - GitHub (github.com)")
+    if args.exclude_github:
+        print("  - GitLab (gitlab.com)")
 
     if args.backup_path:
         print("* Backup folder:                                                     " + args.backup_path)
@@ -256,6 +268,12 @@ def print_summary(args):
 
 
 def build_model(args):
+
+    model = {args.backup_path: {}}
+
+
+    model[args.backup_path]
+    '''
     # using an access token
     auth = Auth.Token("access_token")
 
@@ -273,7 +291,7 @@ def build_model(args):
 
     # To close connections after use
     g.close()
-
+'''
 
 def main():
     args = parse_arguments()
