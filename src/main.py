@@ -7,6 +7,9 @@ import os
 from github import Github
 from github import Auth
 
+# Generate same date string for all entities
+datetime_string = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")  # ISO 8601-like format
+
 
 def is_file_directory_writable(file_path):
     if os.access(os.path.dirname(file_path), os.W_OK):
@@ -33,9 +36,14 @@ def parse_arguments():
                         nargs="+",  # Allow one or more values
                         help="Adds custom GitLab providers",
                         dest="custom_providers")
+    parser.add_argument("-f", "--force",
+                        action="store_true",
+                        help="Does not ask confirmation for destructive actions.",
+                        default=False,
+                        dest="is_forced")
     parser.add_argument("-r", "--remove", "--remove-folder",
                         action="store_true",
-                        help="Removes the backup folder after the backup.",
+                        help="Removes the backup content after the backup.",
                         default=False,
                         dest="remove_backup_folder_afterwards")
     parser.add_argument("-s", "--scratch", "--from-scratch",
@@ -84,16 +92,11 @@ def parse_arguments():
                         metavar="PATH",
                         help="Custom path where the JSON report will be stored. Implies -j.",
                         dest="json_path")
-    parser.add_argument("-b", "--backup", "--backup-path",
+    parser.add_argument("-b", "--backup", "--backup-directory", "--backup-folder",
                         type=str,
                         metavar="PATH",
                         help="Custom folder where all the clones will be done. Requires a value.",
-                        dest="backup_path")
-    parser.add_argument("-f", "--force",
-                        action="store_true",
-                        help="Does not ask confirmation for destructive actions.",
-                        default=False,
-                        dest="is_forced")
+                        dest="backup_folder")
     parser.add_argument("-v", "--verbose",
                         action="store_true",
                         help="Enable verbose output during backup.",
@@ -112,26 +115,23 @@ def parse_arguments():
     parser.add_argument("usernames",
                         nargs="+",
                         metavar="USERNAME1 USERNAME2 USERNAME3 ...",
-                        help="List of usernames to back up from GitHub and GitLab.")
+                        help="List of usernames to back up.")
 
     args = parser.parse_args()
 
-    # Generate same date string for all entities
-    datetime_string = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")  # ISO 8601-like format
-
     # Supply default backup directory
-    if not args.backup_path:
-        args.backup_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backup" + datetime_string)
+    if not args.backup_folder:
+        args.backup_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backup")
 
     # Check existence and access of backup directory
-    if not os.path.exists(args.backup_path):
+    if not os.path.exists(args.backup_folder):
         try:
-            os.makedirs(args.backup_path)
+            os.makedirs(args.backup_folder)
         except OSError as e:
-            parser.error(f"The folder for the backup {args.backup_path} does not exist and cannot be created.")
+            parser.error(f"The folder for the backup {args.backup_folder} does not exist and cannot be created.")
     else:
-        if not os.access(args.backup_path, os.W_OK):
-            parser.error(f"The folder for the backup {args.backup_path} cannot be written or there is some problem "
+        if not os.access(args.backup_folder, os.W_OK):
+            parser.error(f"The folder for the backup {args.backup_folder} cannot be written or there is some problem "
                          f"with it: ")
 
     # Flattening all directory levels makes hierarchy disappears, so it makes no sense to select both configurations
@@ -220,8 +220,8 @@ def print_summary(args):
     if args.exclude_github:
         print("  - GitLab (gitlab.com)")
 
-    if args.backup_path:
-        print("* Backup folder:                                                     " + args.backup_path)
+    if args.backup_folder:
+        print("* Backup folder:                                                     " + args.backup_folder)
 
     if args.produce_compressed:
         print("* Compressed backup path:                                            " + args.compressed_path)
@@ -269,35 +269,73 @@ def print_summary(args):
 
 def build_model(args):
 
-    model = {args.backup_path: {}}
+    model = {datetime_string: {}}
+
+    # TODO: use two auxiliar functions to create the dictionaries DRY code
+    for username in args.usernames:
+        model[datetime_string][username] = {}
+        if not args.exclude_enterprise:
+            if args.exclude_github:
+                model[datetime_string][username]["GitLab"] = {'url': 'https://gitlab.com/', 'type': 'GitLab',
+                                                              'orgs': {}}
+            if args.exclude_gitlab:
+                model[datetime_string][username]["GitHub"] = {'url': 'https://github.com/', 'type': 'GitHub',
+                                                              'orgs': {}}
+            if not args.exclude_gitlab and not args.exclude_github:
+                model[datetime_string][username]["GitLab"] = {'url': 'https://gitlab.com/', 'type': 'GitLab',
+                                                              'orgs': {}}
+                model[datetime_string][username]["GitHub"] = {'url': 'https://github.com/', 'type': 'GitHub',
+                                                              'orgs': {}}
+        if args.custom_providers:
+            for custom_provider in args.custom_providers:
+                if args.exclude_github:
+                    model[datetime_string][username][custom_provider] = {'url': custom_provider, 'type': 'GitLab',
+                                                              'orgs': {}}
+                if args.exclude_gitlab:
+                    model[datetime_string][username][custom_provider] = {'url': custom_provider, 'type': 'GitHub',
+                                                              'orgs': {}}
+                if not args.exclude_gitlab and not args.exclude_github:
+                    model[datetime_string][username][custom_provider] = {'url': custom_provider, 'type': 'GitLab',
+                                                                         'orgs': {}}
+                    model[datetime_string][username][custom_provider] = {'url': custom_provider, 'type': 'GitHub',
+                                                                         'orgs': {}}
 
 
-    model[args.backup_path]
-    '''
+
+def get_organizations(hostname):
     # using an access token
-    auth = Auth.Token("access_token")
-
-    # First create a Github instance:
-
-    # Public Web Github
-    g = Github(auth=auth)
+    auth = Auth.Token("".join(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "secrets", "GH_TOKEN.txt")).readlines()))
 
     # Github Enterprise with custom hostname
-    g = Github(base_url="https://{hostname}/api/v3", auth=auth)
+    #g = Github(base_url="https://" + hostname + "/api/v3", auth=auth)
+    g = Github(auth=auth)
+    USER = "AleixMT"
+    user = g.get_user(USER)
 
-    # Then play with your Github objects:
-    for repo in g.get_user().get_repos():
+    user_repos = user.get_repos()
+    owned_repos = [repo for repo in user_repos if repo.owner.login == USER]
+    for repo in owned_repos:
         print(repo.name)
+    #for orgs in g.get_user().get_repos():
+        #print(orgs)
 
+    '''
+    for orgs in g.get_user().get_orgs():
+        print()
+        print(orgs.login)
+        for repo in orgs.get_repos():
+            print(repo.name)
+    '''
     # To close connections after use
     g.close()
-'''
 
 def main():
     args = parse_arguments()
     if args.is_verbose:
         print_summary(args)
     model = build_model(args)
+
+    get_organizations("github.com")
 
 
 if __name__ == "__main__":
