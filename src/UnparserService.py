@@ -43,8 +43,8 @@ def print_summary(args):
         summary.write("* Directory levels to flatten:                                       " +
                       ", ".join(args.flatten_directories) + "\n")
 
-    if args.collision_strategy:
-        summary.write(f"* Strategy to avoid collision in the folder names of the repos:      {args.collision_strategy}\n")
+    if args.rename_strategy:
+        summary.write(f"* Strategy to avoid collision in the folder names of the repos:      {args.rename_strategy}\n")
 
     summary.write("* Verbose output:                                                   ")
     summary.write("Yes\n" if args.is_verbose else "No\n")

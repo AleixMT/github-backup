@@ -4,10 +4,11 @@ import os
 from datetime import datetime
 
 from FileService import is_file_directory_writable, is_file_writable
-from defines import FlattenLevel, CollisionStrategy
+from defines import FlattenLevel, RenameStrategy, CollisionAction, ProviderType
 import argparse
 
 
+# TODO: prioritize argument to give priority
 def build_argument_parser():
     parser = argparse.ArgumentParser(description="Backup your git repos in your local filesystem")
 
@@ -71,19 +72,41 @@ def build_argument_parser():
                         nargs="+",
                         dest="flatten_directories",
                         choices=[name for name in FlattenLevel])
-    parser.add_argument("-l", "--handle-collision", "--handle-collision-strategy",
-                        help="Strategy to follow to handle collisions (a repo that because of its name has to be cloned"
-                             " in the same folder path as another one):" +
-                             CollisionStrategy.RENAME.name + ": Use a systematic name (the shortest possible) for the "
-                                                             "new repo that produces the collision" +
-                             CollisionStrategy.SYSTEMATIC.name + ": Use a systematic name for all repos" +
-                             CollisionStrategy.IGNORE.name + ": Ignores repos that have filename collisions." +
-                             CollisionStrategy.REMOVE.name + ": Removes the repo already cloned and clones the new one "
-                                                             "with the same name.",
+    parser.add_argument("-R", "--rename", "--rename-strategy",
+                        help="Strategy to rename the path to clone a repositories that has same path as "
+                             "another:" +
+                             RenameStrategy.SHORTEST.name + ": Use the shortest systematic name that avoids same path"
+                                                            "for the repo where the same path is detected." +
+                             RenameStrategy.SHORTEST_SYSTEMATIC.name + ": Use the shortest systematic name that avoids "
+                                                                       "same path for both repos that produce the "
+                                                                       "same path." +
+                             RenameStrategy.SYSTEMATIC.name + ": Use the full systematic name for all repos with "
+                                                              "the same path." +
+                             RenameStrategy.IGNORE.name + ": If a repo is found with the same clone path as another, do"
+                                                          " not clone the repo where the "
+                                                          "path coincidence is detected.",
+                        type=str,
+                        nargs='?',
+                        dest="rename_strategy",
+                        choices=[name for name in RenameStrategy])
+    parser.add_argument("-S", "--collision", "--collision-strategy", "--collision-action",
+                        help="Strategy to follow when finding a repo already cloned in the path that another repo is "
+                             "supposed to be cloned" +
+                             CollisionAction.FULL_UPDATE.name + ": If the new repo to be cloned is different than the "
+                                                                "one already cloned, remove the one already cloned and"
+                                                                "clone the new one in its place, if not, update the "
+                                                                "repo already cloned." +
+                             CollisionAction.UPDATE.name + ": Ignore the new repo to be cloned and updates the repo "
+                                                           "already cloned." +
+                             CollisionAction.IGNORE.name + ": Ignore the new repo to be cloned and do nothing."
+                                                           "." +
+                             CollisionAction.REMOVE.name + ": Remove the repo already cloned and clone the new one in "
+                                                           "the same path.",
                         type=str,
                         nargs='?',
                         dest="collision_strategy",
-                        choices=[name for name in CollisionStrategy])
+                        default=CollisionAction.FULL_UPDATE,
+                        choices=[name for name in CollisionAction])
     parser.add_argument("-j", "--json", "--generate-json", "--produce-json",
                         help="Generates a JSON report of the backup folders and repos.",
                         # type=bool,
@@ -177,18 +200,18 @@ def parse_arguments(parser: argparse.ArgumentParser):
     # When keeping the complete hierarchy we ensure that there will be no collisions
     if not args.flatten_directories \
             and args.reflect_hierarchy \
-            and args.collision_strategy:
-        parser.error("You do not need to supply a collision strategy with -l when keeping the hierarchy with -y and not"
+            and args.rename_strategy:
+        parser.error("You do not need to supply a rename strategy with -R when keeping the hierarchy with -y and not"
                      " flattening any directory (not supplying -F)")
 
     # Supply default collision strategy if needed
     if args.reflect_hierarchy \
             and args.flatten_directories \
-            and not args.collision_strategy:
-        args.collision_strategy = "rename"
+            and not args.rename_strategy:
+        args.rename_strategy = RenameStrategy.SHORTEST_SYSTEMATIC
 
-    if not args.collision_strategy:
-        args.collision_strategy = "rename"
+    if not args.rename_strategy:
+        args.rename_strategy = RenameStrategy.SHORTEST_SYSTEMATIC
 
     # If path supplied -c implicit
     if not args.produce_compressed and args.compressed_path:
@@ -231,7 +254,7 @@ def parse_arguments(parser: argparse.ArgumentParser):
         custom_providers = []
         for custom_provider in args.custom_providers:
             if args.exclude_github:
-                custom_providers.append({'url': custom_provider, 'provider': "GitLab"})
+                custom_providers.append({'url': custom_provider, 'provider': ProviderType.GITLAB})
             if args.exclude_gitlab:
-                custom_providers.append({'url': custom_provider, 'provider': "GitHub"})
+                custom_providers.append({'url': custom_provider, 'provider': ProviderType.GITHUB})
     return args

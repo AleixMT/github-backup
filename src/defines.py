@@ -8,11 +8,11 @@ class ProviderType(Enum):
     GITLAB = 2
 
 
-class CollisionStrategy(Enum):
-    RENAME = 1
-    SYSTEMATIC = 2
-    IGNORE = 3
-    REMOVE = 4
+class RenameStrategy(Enum):
+    SHORTEST = 1
+    SHORTEST_SYSTEMATIC = 2
+    SYSTEMATIC = 3
+    IGNORE = 4
 
 
 class FlattenLevel(Enum):
@@ -20,5 +20,13 @@ class FlattenLevel(Enum):
     USER = 2
     PROVIDER = 3
     ORGANIZATION = 4
+
+
+class CollisionAction(Enum):
+    FULL_UPDATE = 1
+    UPDATE = 2
+    IGNORE = 3
+    REMOVE = 4
+
 
 

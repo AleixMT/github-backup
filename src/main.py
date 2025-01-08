@@ -7,7 +7,7 @@ from io import StringIO
 from GitHubService import GitHubService, build_github_official_provider
 from ProviderService import ProviderService, build_provider
 from TokenService import get_github_token
-from defines import FlattenLevel, CollisionStrategy, ProviderType
+from defines import FlattenLevel, RenameStrategy, ProviderType
 from FileService import is_file_directory_writable
 from GitLabService import build_gitlab_official_provider
 from ArgumentParserService import build_argument_parser, parse_arguments
