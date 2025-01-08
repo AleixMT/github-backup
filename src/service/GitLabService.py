@@ -1,7 +1,7 @@
 from typing import List
 
 from ProviderService import ProviderService, build_provider
-from defines import ProviderType
+from src.defines.ProviderType import ProviderType
 
 
 class GitLabService(ProviderService):

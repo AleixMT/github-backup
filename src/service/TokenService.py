@@ -4,6 +4,7 @@
 import os
 import sys
 
+
 def read_file(file_path):
     """
     Reads the GH_TOKEN file and returns its content.

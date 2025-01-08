@@ -4,7 +4,7 @@ from ProviderService import ProviderService, build_provider
 from github import Github
 from github import Auth
 
-from defines import ProviderType
+from src.defines.ProviderType import ProviderType
 
 
 class GitHubService(ProviderService):

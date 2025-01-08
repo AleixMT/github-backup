@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
-from io import StringIO
-
-from GitHubService import GitHubService, build_github_official_provider
-from ProviderService import ProviderService, build_provider
-from TokenService import get_github_token
-from defines import FlattenLevel, RenameStrategy, ProviderType
-from FileService import is_file_directory_writable
-from GitLabService import build_gitlab_official_provider
-from ArgumentParserService import build_argument_parser, parse_arguments
-from UnparserService import print_summary
+from src.service.GitHubService import GitHubService, build_github_official_provider
+from src.service.ProviderService import ProviderService, build_provider
+from src.service.TokenService import get_github_token
+from src.defines.ProviderType import ProviderType
+from src.service.GitLabService import build_gitlab_official_provider
+from src.service.ArgumentParserService import build_argument_parser, parse_arguments
+from src.service.UnparserService import print_summary
 
 
 def build_model(args):

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import List
 
-from GitHubService import GitHubService
-from ProviderService import ProviderService
-from TokenService import get_github_token
+from src.service.GitHubService import GitHubService
+from src.service.ProviderService import ProviderService
+from src.service.TokenService import get_github_token
 
 
 def get_my_gh_organization_names():

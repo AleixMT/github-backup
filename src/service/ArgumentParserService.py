@@ -4,8 +4,11 @@ import os
 from datetime import datetime
 
 from FileService import is_file_directory_writable, is_file_writable
-from defines import FlattenLevel, RenameStrategy, CollisionAction, ProviderType
 import argparse
+
+from src.defines.CollisionAction import CollisionAction
+from src.defines.FlattenLevel import FlattenLevel
+from src.defines.RenameStrategy import RenameStrategy
 
 
 # TODO: prioritize argument to give priority

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.defines import ProviderType
+from src.defines.defines import ProviderType
 
 
 class Repository:
