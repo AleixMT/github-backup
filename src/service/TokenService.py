@@ -99,7 +99,7 @@ def get_token(token_name):
         lambda: read_file(f"/run/secrets/{token_name}"),
         lambda: read_file(
             os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                 "secrets",
                 token_name
             ).__str__()

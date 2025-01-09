@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from ProviderService import ProviderService, build_provider
+from src.service.ProviderService import ProviderService, build_provider
 from github import Github
 from github import Auth
 

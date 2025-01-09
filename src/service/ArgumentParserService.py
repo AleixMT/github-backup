@@ -3,12 +3,14 @@
 import os
 from datetime import datetime
 
-from FileService import is_file_directory_writable, is_file_writable
+from src.service.FileService import is_file_directory_writable, is_file_writable
 import argparse
 
 from src.defines.CollisionAction import CollisionAction
 from src.defines.FlattenLevel import FlattenLevel
+from src.defines.ProviderType import ProviderType
 from src.defines.RenameStrategy import RenameStrategy
+from src.service.ProviderService import build_provider
 
 
 # TODO: prioritize argument to give priority
@@ -66,50 +68,50 @@ def build_argument_parser():
                         help="Hierarchy levels of the backup that will not be present in the hierarchical structure"
                              " of the folder "
                              "structure of the backup. Implies -y except when "
-                             "flattening all directory level:" +
-                             FlattenLevel.ROOT.name + ": Flattens root folder in the backup." +
-                             FlattenLevel.USER.name + ": Flattens user folders in the backup" +
-                             FlattenLevel.PROVIDER.name + ": Flattens provider folder in the backup." +
+                             "flattening all directory level:\n" +
+                             FlattenLevel.ROOT.name + ": Flattens root folder in the backup.\n" +
+                             FlattenLevel.USER.name + ": Flattens user folders in the backup.\n" +
+                             FlattenLevel.PROVIDER.name + ": Flattens provider folder in the backup.\n" +
                              FlattenLevel.ORGANIZATION.name + ": Flattens organization folder in the backup.",
                         type=str,
                         nargs="+",
                         dest="flatten_directories",
-                        choices=[name for name in FlattenLevel])
+                        choices=[level.name for level in FlattenLevel])
     parser.add_argument("-R", "--rename", "--rename-strategy",
                         help="Strategy to rename the path to clone a repositories that has same path as "
-                             "another:" +
+                             "another:\n" +
                              RenameStrategy.SHORTEST.name + ": Use the shortest systematic name that avoids same path"
-                                                            "for the repo where the same path is detected." +
+                                                            "for the repo where the same path is detected.\n" +
                              RenameStrategy.SHORTEST_SYSTEMATIC.name + ": Use the shortest systematic name that avoids "
-                                                                       "same path for both repos that produce the "
-                                                                       "same path." +
+                                                                       "same path for all repos that produce the "
+                                                                       "same path.\n" +
                              RenameStrategy.SYSTEMATIC.name + ": Use the full systematic name for all repos with "
-                                                              "the same path." +
+                                                              "the same path.\n" +
                              RenameStrategy.IGNORE.name + ": If a repo is found with the same clone path as another, do"
                                                           " not clone the repo where the "
                                                           "path coincidence is detected.",
                         type=str,
                         nargs='?',
                         dest="rename_strategy",
-                        choices=[name for name in RenameStrategy])
+                        choices=[strategy.name for strategy in RenameStrategy])
     parser.add_argument("-S", "--collision", "--collision-strategy", "--collision-action",
                         help="Strategy to follow when finding a repo already cloned in the path that another repo is "
-                             "supposed to be cloned" +
+                             "supposed to be cloned.\n" +
                              CollisionAction.FULL_UPDATE.name + ": If the new repo to be cloned is different than the "
                                                                 "one already cloned, remove the one already cloned and"
                                                                 "clone the new one in its place, if not, update the "
-                                                                "repo already cloned." +
+                                                                "repo already cloned.\n" +
                              CollisionAction.UPDATE.name + ": Ignore the new repo to be cloned and updates the repo "
-                                                           "already cloned." +
+                                                           "already cloned.\n" +
                              CollisionAction.IGNORE.name + ": Ignore the new repo to be cloned and do nothing."
-                                                           "." +
+                                                           ".\n" +
                              CollisionAction.REMOVE.name + ": Remove the repo already cloned and clone the new one in "
                                                            "the same path.",
                         type=str,
                         nargs='?',
                         dest="collision_strategy",
                         default=CollisionAction.FULL_UPDATE,
-                        choices=[name for name in CollisionAction])
+                        choices=[action.name for action in CollisionAction])
     parser.add_argument("-j", "--json", "--generate-json", "--produce-json",
                         help="Generates a JSON report of the backup folders and repos.",
                         # type=bool,
@@ -257,7 +259,7 @@ def parse_arguments(parser: argparse.ArgumentParser):
         custom_providers = []
         for custom_provider in args.custom_providers:
             if args.exclude_github:
-                custom_providers.append({'url': custom_provider, 'provider': ProviderType.GITLAB})
+                custom_providers.append(build_provider(custom_provider, ProviderType.GITLAB))
             if args.exclude_gitlab:
-                custom_providers.append({'url': custom_provider, 'provider': ProviderType.GITHUB})
+                custom_providers.append(build_provider(custom_provider,  ProviderType.GITHUB))
     return args

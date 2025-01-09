@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+from src.model.Provider import Provider
+
 
 class ProviderService(ABC):
     """Interface for provider services like GitHub and GitLab."""
@@ -18,5 +20,5 @@ class ProviderService(ABC):
         pass
 
 
-def build_provider(url, provider_type):
-    return {'url': url, 'type': provider_type, 'orgs': {}}
+def build_provider(url, provider_type, token):
+    return Provider(url, provider_type, token)

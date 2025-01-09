@@ -8,3 +8,4 @@ class FlattenLevel(Enum):
     USER = 2
     PROVIDER = 3
     ORGANIZATION = 4
+    REPO = 5
