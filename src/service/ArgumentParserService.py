@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import re
 from datetime import datetime
 
-from src.service.FileService import is_file_directory_writable, is_file_writable
+from src.service.IOService import is_file_directory_writable, is_file_writable
 import argparse
 
 from src.defines.CollisionAction import CollisionAction
@@ -180,7 +181,7 @@ def parse_arguments(parser: argparse.ArgumentParser):
 
     # Supply default backup directory
     if not args.backup_folder:
-        args.backup_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "backup")
+        args.backup_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "backup")
 
     # Check existence and access of backup directory
     if not os.path.exists(args.backup_folder):
@@ -214,6 +215,10 @@ def parse_arguments(parser: argparse.ArgumentParser):
             and args.flatten_directories \
             and not args.rename_strategy:
         args.rename_strategy = RenameStrategy.SHORTEST_SYSTEMATIC
+
+    # Default to empty list
+    if not args.flatten_directories:
+        args.flatten_directories = []
 
     if not args.rename_strategy:
         args.rename_strategy = RenameStrategy.SHORTEST_SYSTEMATIC
@@ -263,3 +268,23 @@ def parse_arguments(parser: argparse.ArgumentParser):
             if args.exclude_gitlab:
                 custom_providers.append(build_provider(custom_provider,  ProviderType.GITHUB))
     return args
+
+
+def infer_name(input_string):
+    # Regular expressions
+    ip_regex = r'^((https?://)?((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))$'
+    dns_regex = r'^((https?://)?([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+)$'
+
+    # Check if the string is an IP or an IP with "https://"
+    if re.match(ip_regex, input_string):
+        # Extract the IP address without "https://"
+        ip_match = re.search(r'((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)', input_string)
+        return ip_match.group()
+
+    # Check if the string is a DNS name (including single-word hostnames)
+    elif re.match(dns_regex, input_string):
+        # Extract the DNS name without "https://"
+        dns_match = re.search(r'([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+$', input_string)
+        return dns_match.group()
+
+    raise ValueError("Invalid Input: " + input_string)

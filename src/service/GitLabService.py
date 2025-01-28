@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from src.service.ProviderService import ProviderService, build_provider
 from src.defines.ProviderType import ProviderType
+from src.service.TokenService import get_gitlab_official_token
 
 
 class GitLabService(ProviderService):
@@ -30,4 +31,4 @@ class GitLabService(ProviderService):
 
 
 def build_gitlab_official_provider():
-    return build_provider('https://gitlab.com/', ProviderType.GITLAB)
+    return build_provider(ProviderType.GITLAB, 'https://gitlab.com/', get_gitlab_official_token())

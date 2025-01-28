@@ -1,10 +1,14 @@
 from typing import Optional, List
 
+from src.service.ArgumentParserService import infer_name
 from src.service.ProviderService import ProviderService, build_provider
 from github import Github
 from github import Auth
+from git import Repo  # TODO separate in its own file
+
 
 from src.defines.ProviderType import ProviderType
+from src.service.TokenService import get_github_official_token
 
 
 class GitHubService(ProviderService):
@@ -12,7 +16,10 @@ class GitHubService(ProviderService):
 
     def __init__(self, access_token, url: Optional[str] = None):
         if url:
-            self.g = Github(base_url=url, auth=Auth.Token(access_token))
+            if infer_name(url).__eq__("github.com"):
+                self.g = Github(auth=Auth.Token(access_token))
+            else:
+                self.g = Github(base_url=url, auth=Auth.Token(access_token))
         else:
             self.g = Github(auth=Auth.Token(access_token))
 
@@ -56,6 +63,9 @@ class GitHubService(ProviderService):
     def get_organization_repo_names(self, organization) -> List[str]:
         return [repo.name for repo in self.get_user_owned_repos(organization)]
 
+    def clone_repo(self, url, path):
+        Repo.clone_from(url, path)
+
 
 def build_github_official_provider():
-    return build_provider('https://github.com/', ProviderType.GITHUB)
+    return build_provider(ProviderType.GITHUB, 'https://github.com', get_github_official_token())

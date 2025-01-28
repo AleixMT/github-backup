@@ -18,17 +18,17 @@ def compute_path(repository, ignore_backup: bool = False, ignore_owner: bool = F
     if not ignore_organization:
         repository.path = repository.path / repository.organization
 
-    if flatten_level.name == FlattenLevel.REPO:
+    if flatten_level == FlattenLevel.REPO:
         repository.path = repository.path / repository.name
-    elif flatten_level.name == FlattenLevel.ORGANIZATION:
+    elif flatten_level == FlattenLevel.ORGANIZATION:
         repository.path = repository.path / repository.name + separator + repository.organization
-    elif flatten_level.name == FlattenLevel.PROVIDER:
+    elif flatten_level == FlattenLevel.PROVIDER:
         repository.path = (repository.path / repository.name + separator + repository.organization + separator +
                            repository.provider)
-    elif flatten_level.name == FlattenLevel.USER:
+    elif flatten_level == FlattenLevel.USER:
         repository.path = (repository.path / repository.name + separator + repository.organization + separator +
                            repository.provider + separator + repository.user)
-    elif flatten_level.name == FlattenLevel.ROOT:
+    elif flatten_level == FlattenLevel.ROOT:
         repository.path = (repository.path / repository.name + separator + repository.organization + separator +
                            repository.provider + separator + repository.user + separator + repository.backup)
 

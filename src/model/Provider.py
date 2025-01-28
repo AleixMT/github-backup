@@ -6,9 +6,9 @@ from src.defines.ProviderType import ProviderType
 
 
 class Provider:
-    def __init__(self, url: str, provider: ProviderType, token: str):
-        self.url = url
+    def __init__(self, provider: ProviderType, url: str, token: str):
         self.provider = provider
+        self.url = url
         self.token = token
 
 
