@@ -1,7 +1,8 @@
+from argparse import Namespace
 from io import StringIO
 
 
-def print_summary(args):
+def print_summary(args: Namespace) -> str:
     summary = StringIO()
     summary.write("BACKUP SUMMARY:\n")
     summary.write("Backing up the following users:\n")
@@ -56,7 +57,7 @@ def print_summary(args):
 
     if args.rename_strategy:
         summary.write(
-            f"* Strategy to avoid collision in the folder names of the repos:      {args.rename_strategy}\n"
+            f"* Strategy to avoid collision in the folder names of the repos:      {args.rename_strategy.name}\n"
         )
 
     summary.write(

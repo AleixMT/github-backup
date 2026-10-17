@@ -2,32 +2,33 @@
 
 import os
 import sys
+from collections.abc import Callable
 
 from src.defines.ProviderType import ProviderType
 from src.service.IOService import read_env_var, read_file
 
 
-def get_github_official_token():
+def get_github_official_token() -> str:
     return get_token("GH_TOKEN")
 
 
-def get_gitlab_official_token():
+def get_gitlab_official_token() -> str:
     return get_token("GL_TOKEN")
 
 
 # For GitHub enterprise in example.com its token deduced name would be EXAMPLE_COM_GITHUB
-def deduce_name(provider: ProviderType, hostname: str):
+def deduce_name(provider: ProviderType, hostname: str) -> str:
     return hostname.replace(".", "_").capitalize() + "_" + provider.name
 
 
 # Based on the provided custom provider, get the corresponding token from file or env vars with the deduced name
-def get_custom_provider_token(provider: ProviderType, hostname: str):
+def get_custom_provider_token(provider: ProviderType, hostname: str) -> str:
     return get_token(deduce_name(provider, hostname))
 
 
-def get_token(token_name):
+def get_token(token_name: str) -> str:
     """Retrieve a token from predefined sources in order of priority."""
-    sources = [
+    sources: list[Callable[[], str]] = [
         lambda: read_file(f"/run/secrets/{token_name}"),
         lambda: read_file(
             os.path.join(

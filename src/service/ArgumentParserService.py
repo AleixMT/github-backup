@@ -5,14 +5,12 @@ from datetime import datetime
 
 from src.defines.CollisionAction import CollisionAction
 from src.defines.FlattenLevel import FlattenLevel
-from src.defines.ProviderType import ProviderType
 from src.defines.RenameStrategy import RenameStrategy
 from src.service.IOService import is_file_directory_writable, is_file_writable
-from src.service.ProviderService import build_provider
 
 
 # TODO: prioritize argument to give priority
-def build_argument_parser():
+def build_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Backup your git repos in your local filesystem"
     )
@@ -160,7 +158,7 @@ def build_argument_parser():
         type=str,
         nargs="?",
         dest="collision_strategy",
-        default=CollisionAction.FULL_UPDATE,
+        default=CollisionAction.FULL_UPDATE.name,
         choices=[action.name for action in CollisionAction],
     )
     parser.add_argument(
@@ -220,7 +218,7 @@ def build_argument_parser():
         # nargs=0,
         dest="exclude_github",
         action="store_true",
-    ),
+    )
     parser.add_argument(
         "--exclude-gitlab",
         help="Exclude GitLab repositories from the backup.",
@@ -249,7 +247,7 @@ def build_argument_parser():
     return parser
 
 
-def parse_arguments(parser: argparse.ArgumentParser):
+def parse_arguments(parser: argparse.ArgumentParser) -> argparse.Namespace:
     args = parser.parse_args()
 
     if not args.backup_name:
@@ -257,6 +255,50 @@ def parse_arguments(parser: argparse.ArgumentParser):
             "%Y-%m-%dT%H:%M:%S"
         )  # ISO 8601-like format
 
+    _check_backup_folder(parser, args)
+    _check_hierarchy_options(parser, args)
+
+    # Convert the chosen names into their enum values
+    args.rename_strategy = RenameStrategy[args.rename_strategy]
+    if isinstance(args.collision_strategy, str):
+        args.collision_strategy = CollisionAction[args.collision_strategy]
+
+    # If path supplied -c implicit
+    if not args.produce_compressed and args.compressed_path:
+        args.produce_compressed = True
+
+    # If -c but no path provided set to default value
+    if args.produce_compressed and not args.compressed_path:
+        args.compressed_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "backup" + args.backup_name + ".tar.gz",
+        )
+    _check_output_file(parser, args.compressed_path)
+
+    # If path supplied -j implicit
+    if not args.produce_json and args.json_path:
+        args.produce_json = True
+
+    # If -j but no path provided set to default value
+    if args.produce_json and not args.json_path:
+        args.json_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "backup" + args.backup_name + ".json",
+        )
+    _check_output_file(parser, args.json_path)
+
+    # Check if at least one source is included
+    if args.exclude_github and args.exclude_gitlab:
+        parser.error(
+            "You cannot exclude both GitHub and GitLab. At least one provider must be included."
+        )
+
+    return args
+
+
+def _check_backup_folder(
+    parser: argparse.ArgumentParser, args: argparse.Namespace
+) -> None:
     # Supply default backup directory
     if not args.backup_folder:
         args.backup_folder = os.path.join(
@@ -273,21 +315,23 @@ def parse_arguments(parser: argparse.ArgumentParser):
         except OSError as e:
             parser.error(
                 f"The folder for the backup {args.backup_folder} does not exist and cannot be created. Error: "
-                + e.__str__()
+                + str(e)
             )
-    else:
-        if not os.access(args.backup_folder, os.W_OK):
-            parser.error(
-                f"The folder for the backup {args.backup_folder} cannot be written or there is some problem "
-                f"with it: "
-            )
+    elif not os.access(args.backup_folder, os.W_OK):
+        parser.error(
+            f"The folder for the backup {args.backup_folder} cannot be written or there is some problem "
+            f"with it: "
+        )
 
+
+def _check_hierarchy_options(
+    parser: argparse.ArgumentParser, args: argparse.Namespace
+) -> None:
     # Flattening all directory levels makes hierarchy disappears, so it makes no sense to select both configurations
+    hierarchy_levels = {level.name for level in FlattenLevel} - {FlattenLevel.REPO.name}
     if (
         args.flatten_directories
-        and "rename" in args.flatten_directories
-        and "ignore" in args.flatten_directories
-        and "remove" in args.flatten_directories
+        and hierarchy_levels <= set(args.flatten_directories)
         and args.reflect_hierarchy
     ):
         parser.error(
@@ -301,84 +345,33 @@ def parse_arguments(parser: argparse.ArgumentParser):
             " flattening any directory (not supplying -F)"
         )
 
-    # Supply default collision strategy if needed
-    if args.reflect_hierarchy and args.flatten_directories and not args.rename_strategy:
-        args.rename_strategy = RenameStrategy.SHORTEST_SYSTEMATIC
-
     # Default to empty list
     if not args.flatten_directories:
         args.flatten_directories = []
 
+    # Supply default rename strategy if needed
     if not args.rename_strategy:
-        args.rename_strategy = RenameStrategy.SHORTEST_SYSTEMATIC
+        args.rename_strategy = RenameStrategy.SHORTEST_SYSTEMATIC.name
 
-    # If path supplied -c implicit
-    if not args.produce_compressed and args.compressed_path:
-        args.produce_compressed = True
 
-    # If -c but no path provided set to default value
-    if args.produce_compressed and not args.compressed_path:
-        args.compressed_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "backup" + args.backup_name + ".tar.gz",
-        )
+def _check_output_file(parser: argparse.ArgumentParser, file_path: str | None) -> None:
+    if not file_path:
+        return
 
-    # Check access to json file
-    if args.compressed_path and not is_file_directory_writable(args.compressed_path):
+    # Check access to the directory of the file
+    if not is_file_directory_writable(file_path):
         parser.error(
             "File "
-            + args.compressed_path
+            + file_path
             + " is not writable because its directory cannot be accessed."
         )
 
-    # Check write access to json file
-    if args.compressed_path and not is_file_writable(args.compressed_path):
-        parser.error("File " + args.compressed_path + " is not writable.")
-
-    # If path supplied -j implicit
-    if not args.produce_json and args.json_path:
-        args.produce_json = True
-
-    # If -j but no path provided set to default value
-    if args.produce_json and not args.json_path:
-        args.json_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "backup" + args.backup_name + ".json",
-        )
-
-    # Check access to json file
-    if args.json_path and not is_file_directory_writable(args.json_path):
-        parser.error(
-            "File "
-            + args.json_path
-            + " is not writable because its directory cannot be accessed."
-        )
-
-    # Check write access to json file
-    if args.json_path and not is_file_writable(args.json_path):
-        parser.error("File " + args.json_path + " is not writable.")
-
-    # Check if at least one source is included
-    if args.exclude_github and args.exclude_gitlab:
-        parser.error(
-            "You cannot exclude both GitHub and GitLab. At least one provider must be included."
-        )
-
-    if args.custom_providers:
-        custom_providers = []
-        for custom_provider in args.custom_providers:
-            if args.exclude_github:
-                custom_providers.append(
-                    build_provider(custom_provider, ProviderType.GITLAB)
-                )
-            if args.exclude_gitlab:
-                custom_providers.append(
-                    build_provider(custom_provider, ProviderType.GITHUB)
-                )
-    return args
+    # Check write access to the file
+    if not is_file_writable(file_path):
+        parser.error("File " + file_path + " is not writable.")
 
 
-def infer_name(input_string):
+def infer_name(input_string: str) -> str:
     # Regular expressions
     ip_regex = r"^((https?://)?((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))$"
     dns_regex = r"^((https?://)?([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+)$"
@@ -390,12 +383,14 @@ def infer_name(input_string):
             r"((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)",
             input_string,
         )
-        return ip_match.group()
+        if ip_match:
+            return ip_match.group()
 
     # Check if the string is a DNS name (including single-word hostnames)
     elif re.match(dns_regex, input_string):
         # Extract the DNS name without "https://"
         dns_match = re.search(r"([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+$", input_string)
-        return dns_match.group()
+        if dns_match:
+            return dns_match.group()
 
     raise ValueError("Invalid Input: " + input_string)

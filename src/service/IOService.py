@@ -1,20 +1,18 @@
 import os
 
 
-def is_file_directory_writable(file_path):
-    return bool(os.access(os.path.dirname(file_path), os.W_OK))
+def is_file_directory_writable(file_path: str) -> bool:
+    return os.access(os.path.dirname(os.path.abspath(file_path)), os.W_OK)
 
 
-def is_file_writable(file_path):
-    try:
-        # Try opening file in write mode
-        open(file_path, "w")
-        return True
-    except OSError, PermissionError:
-        return False
+def is_file_writable(file_path: str) -> bool:
+    # Check permissions without opening the file, so an existing file is not truncated
+    if os.path.exists(file_path):
+        return os.path.isfile(file_path) and os.access(file_path, os.W_OK)
+    return is_file_directory_writable(file_path)
 
 
-def read_file(file_path):
+def read_file(file_path: str) -> str:
     """
     Reads the GH_TOKEN file and returns its content.
     Handles edge cases such as the file being empty, not existing, or being unreadable.
@@ -42,7 +40,7 @@ def read_file(file_path):
             )
 
         # Read the file
-        with open(file_path, "r") as file:
+        with open(file_path) as file:
             content = file.read().strip()
 
         # Check if the file is empty or contains only whitespace
@@ -63,7 +61,7 @@ def read_file(file_path):
         raise
 
 
-def read_env_var(var_name):
+def read_env_var(var_name: str) -> str:
     """
     Reads an environment variable and validates its content.
 

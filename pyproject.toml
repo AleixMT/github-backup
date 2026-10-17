@@ -7,6 +7,7 @@ requires-python = ">=3.14"
 dependencies = [
     "PyGithub",
     "GitPython",
+    "python-gitlab",
 ]
 
 [project.optional-dependencies]
@@ -18,3 +19,27 @@ dev = [
   "pre-commit",
   "build",
 ]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+explicit_package_bases = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I", "N", "UP", "SIM", "C4", "PIE", "RET", "PL", "RUF"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

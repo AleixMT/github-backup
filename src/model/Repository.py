@@ -1,28 +1,20 @@
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from src.model.Provider import Provider
 
 
+@dataclass
 class Repository:
-    def __init__(
-        self,
-        backup: str,
-        owner: str,
-        provider: Provider,
-        organization: str,
-        name: str,
-        link: str,
-        path: Path = Path(),
-    ):
-        self.backup = backup
-        self.owner = owner
-        self.provider = provider
-        self.organization = organization
-        self.name = name
-        self.link = link
-        self.path = path
+    backup: str
+    owner: str
+    provider: Provider
+    organization: str
+    name: str
+    link: str
+    path: Path = field(default_factory=Path)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"Repository(provider='{self.provider}', organization='{self.organization}', "
             f"name='{self.name}', repo_link='{self.link}', path='{self.path}')"
