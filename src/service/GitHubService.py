@@ -1,20 +1,16 @@
-from typing import Optional, List
-
-from src.service.ArgumentParserService import infer_name
-from src.service.ProviderService import ProviderService, build_provider
-from github import Github
-from github import Auth
 from git import Repo  # TODO separate in its own file
-
+from github import Auth, Github
 
 from src.defines.ProviderType import ProviderType
+from src.service.ArgumentParserService import infer_name
+from src.service.ProviderService import ProviderService, build_provider
 from src.service.TokenService import get_github_official_token
 
 
 class GitHubService(ProviderService):
     """Service for interacting with GitHub."""
 
-    def __init__(self, access_token, url: Optional[str] = None):
+    def __init__(self, access_token, url: str | None = None):
         if url:
             if infer_name(url).__eq__("github.com"):
                 self.g = Github(auth=Auth.Token(access_token))
@@ -30,7 +26,7 @@ class GitHubService(ProviderService):
         self.g.close()
         return user_orgs
 
-    def get_user_organization_names(self, username) -> List[str]:
+    def get_user_organization_names(self, username) -> list[str]:
         return [org.login for org in self.get_user_organizations()]
 
     def get_user_repos(self):
@@ -43,24 +39,27 @@ class GitHubService(ProviderService):
         self.g.close()
         return owned_repos
 
-    def get_user_owned_repo_names(self, username) -> List[str]:
+    def get_user_owned_repo_names(self, username) -> list[str]:
         return [repo.name for repo in self.get_user_owned_repos(username)]
 
     def get_user_collaboration_repos(self, username):
         user_repos = self.get_user_repos()
         org_names = self.get_user_organization_names(username)
-        owned_repos = [repo for repo in user_repos
-                       if repo.owner.login != username and repo.owner.login not in org_names]
+        owned_repos = [
+            repo
+            for repo in user_repos
+            if repo.owner.login != username and repo.owner.login not in org_names
+        ]
         self.g.close()
         return owned_repos
 
-    def get_user_collaboration_repo_names(self, username) -> List[str]:
+    def get_user_collaboration_repo_names(self, username) -> list[str]:
         return [repo.name for repo in self.get_user_collaboration_repos(username)]
 
     def get_organization_repos(self, organization):
         return self.get_user_owned_repos(organization)
 
-    def get_organization_repo_names(self, organization) -> List[str]:
+    def get_organization_repo_names(self, organization) -> list[str]:
         return [repo.name for repo in self.get_user_owned_repos(organization)]
 
     def clone_repo(self, url, path):
@@ -68,4 +67,6 @@ class GitHubService(ProviderService):
 
 
 def build_github_official_provider():
-    return build_provider(ProviderType.GITHUB, 'https://github.com', get_github_official_token())
+    return build_provider(
+        ProviderType.GITHUB, "https://github.com", get_github_official_token()
+    )

@@ -1,22 +1,16 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import os
 
 
 def is_file_directory_writable(file_path):
-    if os.access(os.path.dirname(file_path), os.W_OK):
-        return True
-    else:
-        return False
+    return bool(os.access(os.path.dirname(file_path), os.W_OK))
 
 
 def is_file_writable(file_path):
     try:
         # Try opening file in write mode
-        open(file_path, 'w')
+        open(file_path, "w")
         return True
-    except (OSError, PermissionError):
+    except OSError, PermissionError:
         return False
 
 
@@ -43,7 +37,9 @@ def read_file(file_path):
 
         # Check if the file is readable
         if not os.access(file_path, os.R_OK):
-            raise PermissionError(f"The file '{file_path}' cannot be read. Check permissions.")
+            raise PermissionError(
+                f"The file '{file_path}' cannot be read. Check permissions."
+            )
 
         # Read the file
         with open(file_path, "r") as file:
@@ -51,17 +47,19 @@ def read_file(file_path):
 
         # Check if the file is empty or contains only whitespace
         if not content:
-            raise ValueError(f"The file '{file_path}' is empty or contains only whitespace.")
+            raise ValueError(
+                f"The file '{file_path}' is empty or contains only whitespace."
+            )
 
         return content
 
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         raise
-    except PermissionError as e:
+    except PermissionError:
         raise
-    except ValueError as e:
+    except ValueError:
         raise
-    except Exception as e:
+    except Exception:
         raise
 
 
@@ -89,7 +87,9 @@ def read_env_var(var_name):
 
         # Check if the value is empty or contains only whitespace
         if not value:
-            raise ValueError(f"The environment variable '{var_name}' is empty or contains only whitespace.")
+            raise ValueError(
+                f"The environment variable '{var_name}' is empty or contains only whitespace."
+            )
 
         return value
 

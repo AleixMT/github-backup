@@ -1,21 +1,19 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from src.defines.FlattenLevel import FlattenLevel
+from src.defines.ProviderType import ProviderType
 from src.defines.RenameStrategy import RenameStrategy
 from src.model.Repository import Repository
-from src.service.GitHubService import GitHubService, build_github_official_provider
-from src.service.ProviderService import ProviderService, build_provider, build_custom_provider
-from src.service.RepositoryService import compute_path
-from src.service.TokenService import get_github_official_token, get_custom_provider_token, get_gitlab_official_token
-from src.defines.ProviderType import ProviderType
-from src.service.GitLabService import build_gitlab_official_provider, GitLabService
 from src.service.ArgumentParserService import build_argument_parser, parse_arguments
+from src.service.GitHubService import GitHubService, build_github_official_provider
+from src.service.GitLabService import GitLabService, build_gitlab_official_provider
+from src.service.ProviderService import (
+    build_custom_provider,
+)
+from src.service.RepositoryService import compute_path
 from src.service.UnparserService import print_summary
 
-'''
+"""
 /backup/owner/provider/organization/repo
-'''
+"""
 
 
 def build_model(args):
@@ -35,12 +33,20 @@ def build_model(args):
     if args.custom_providers:
         for custom_provider in args.custom_providers:
             if args.exclude_github:
-                providers.append(build_custom_provider(ProviderType.GITLAB, custom_provider))
+                providers.append(
+                    build_custom_provider(ProviderType.GITLAB, custom_provider)
+                )
             if args.exclude_gitlab:
-                providers.append(build_custom_provider(ProviderType.GITHUB, custom_provider))
+                providers.append(
+                    build_custom_provider(ProviderType.GITHUB, custom_provider)
+                )
             if not args.exclude_gitlab and not args.exclude_github:
-                providers.append(build_custom_provider(ProviderType.GITLAB, custom_provider))
-                providers.append(build_custom_provider(ProviderType.GITHUB, custom_provider))
+                providers.append(
+                    build_custom_provider(ProviderType.GITLAB, custom_provider)
+                )
+                providers.append(
+                    build_custom_provider(ProviderType.GITHUB, custom_provider)
+                )
 
     model = {}
     for username in args.usernames:
@@ -57,12 +63,21 @@ def build_model(args):
             for organization in organizations:
                 repos = provider_service.get_organization_repo_names(organization)
                 for repo in repos:
-                    new_repo = Repository(args.backup_name, username, provider, organization, repo,
-                               provider.url + "/" + organization + "/" + repo)
-                    compute_path(new_repo, FlattenLevel.ROOT.name in args.flatten_directories,
-                                                 FlattenLevel.USER.name in args.flatten_directories,
-                                                 FlattenLevel.PROVIDER.name in args.flatten_directories,
-                                                 FlattenLevel.ORGANIZATION.name in args.flatten_directories)
+                    new_repo = Repository(
+                        args.backup_name,
+                        username,
+                        provider,
+                        organization,
+                        repo,
+                        provider.url + "/" + organization + "/" + repo,
+                    )
+                    compute_path(
+                        new_repo,
+                        FlattenLevel.ROOT.name in args.flatten_directories,
+                        FlattenLevel.USER.name in args.flatten_directories,
+                        FlattenLevel.PROVIDER.name in args.flatten_directories,
+                        FlattenLevel.ORGANIZATION.name in args.flatten_directories,
+                    )
                     computed_path = new_repo.path
                     if computed_path not in model:
                         model[computed_path] = new_repo
@@ -72,42 +87,67 @@ def build_model(args):
                         elif args.rename_strategy == RenameStrategy.SHORTEST:
                             new_repo.path = computed_path
                             while computed_path in model:
-                                compute_path(new_repo, FlattenLevel.ROOT.name in args.flatten_directories,
-                                                              FlattenLevel.USER.name in args.flatten_directories,
-                                                              FlattenLevel.PROVIDER.name in args.flatten_directories,
-                                                              FlattenLevel.ORGANIZATION.name in args.flatten_directories,
-                                                              FlattenLevel(FlattenLevel.USER.value - 1))
+                                compute_path(
+                                    new_repo,
+                                    FlattenLevel.ROOT.name in args.flatten_directories,
+                                    FlattenLevel.USER.name in args.flatten_directories,
+                                    FlattenLevel.PROVIDER.name
+                                    in args.flatten_directories,
+                                    FlattenLevel.ORGANIZATION.name
+                                    in args.flatten_directories,
+                                    FlattenLevel(FlattenLevel.USER.value - 1),
+                                )
                             computed_path = new_repo.path
                             model[computed_path] = new_repo
                         elif args.rename_strategy == RenameStrategy.SYSTEMATIC:
                             repo_collisioned = model.pop(computed_path)
-                            compute_path(repo_collisioned, FlattenLevel.ROOT.name in args.flatten_directories,
-                                                              FlattenLevel.USER.name in args.flatten_directories,
-                                                              FlattenLevel.PROVIDER.name in args.flatten_directories,
-                                                              FlattenLevel.ORGANIZATION.name in args.flatten_directories,
-                                                              FlattenLevel.ROOT)
+                            compute_path(
+                                repo_collisioned,
+                                FlattenLevel.ROOT.name in args.flatten_directories,
+                                FlattenLevel.USER.name in args.flatten_directories,
+                                FlattenLevel.PROVIDER.name in args.flatten_directories,
+                                FlattenLevel.ORGANIZATION.name
+                                in args.flatten_directories,
+                                FlattenLevel.ROOT,
+                            )
                             model[repo_collisioned.path] = repo_collisioned
-                            compute_path(new_repo, FlattenLevel.ROOT.name in args.flatten_directories,
-                                          FlattenLevel.USER.name in args.flatten_directories,
-                                          FlattenLevel.PROVIDER.name in args.flatten_directories,
-                                          FlattenLevel.ORGANIZATION.name in args.flatten_directories,
-                                          FlattenLevel.ROOT)
+                            compute_path(
+                                new_repo,
+                                FlattenLevel.ROOT.name in args.flatten_directories,
+                                FlattenLevel.USER.name in args.flatten_directories,
+                                FlattenLevel.PROVIDER.name in args.flatten_directories,
+                                FlattenLevel.ORGANIZATION.name
+                                in args.flatten_directories,
+                                FlattenLevel.ROOT,
+                            )
                             model[new_repo.path] = new_repo
                         elif args.rename_strategy == RenameStrategy.SHORTEST_SYSTEMATIC:
                             repo_collisioned = model.pop(computed_path)
                             increasing_flatten_level = FlattenLevel.REPO
                             while repo_collisioned.path == new_repo.path:
-                                compute_path(repo_collisioned, FlattenLevel.ROOT.name in args.flatten_directories,
-                                             FlattenLevel.USER.name in args.flatten_directories,
-                                             FlattenLevel.PROVIDER.name in args.flatten_directories,
-                                             FlattenLevel.ORGANIZATION.name in args.flatten_directories,
-                                             FlattenLevel(increasing_flatten_level.value))
-                                compute_path(new_repo, FlattenLevel.ROOT.name in args.flatten_directories,
-                                             FlattenLevel.USER.name in args.flatten_directories,
-                                             FlattenLevel.PROVIDER.name in args.flatten_directories,
-                                             FlattenLevel.ORGANIZATION.name in args.flatten_directories,
-                                             FlattenLevel.ROOT)
-                                increasing_flatten_level = FlattenLevel(increasing_flatten_level.value - 1)
+                                compute_path(
+                                    repo_collisioned,
+                                    FlattenLevel.ROOT.name in args.flatten_directories,
+                                    FlattenLevel.USER.name in args.flatten_directories,
+                                    FlattenLevel.PROVIDER.name
+                                    in args.flatten_directories,
+                                    FlattenLevel.ORGANIZATION.name
+                                    in args.flatten_directories,
+                                    FlattenLevel(increasing_flatten_level.value),
+                                )
+                                compute_path(
+                                    new_repo,
+                                    FlattenLevel.ROOT.name in args.flatten_directories,
+                                    FlattenLevel.USER.name in args.flatten_directories,
+                                    FlattenLevel.PROVIDER.name
+                                    in args.flatten_directories,
+                                    FlattenLevel.ORGANIZATION.name
+                                    in args.flatten_directories,
+                                    FlattenLevel.ROOT,
+                                )
+                                increasing_flatten_level = FlattenLevel(
+                                    increasing_flatten_level.value - 1
+                                )
 
                             model[repo_collisioned.path] = repo_collisioned
                             model[new_repo.path] = new_repo
@@ -137,11 +177,12 @@ def main():
 
 if __name__ == "__main__":
     # Generate same date string for all entities
-    import sys
     import os
+    import sys
+
     sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-    #gh: ProviderService = GitHubService(get_github_official_token())
-    #print(gh.get_user_organization_names("AleixMT"))
+    # gh: ProviderService = GitHubService(get_github_official_token())
+    # print(gh.get_user_organization_names("AleixMT"))
 
     main()

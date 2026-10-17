@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from src.service.GitHubService import GitHubService
 from src.service.ProviderService import ProviderService
 from src.service.TokenService import get_github_official_token

@@ -1,5 +1,4 @@
-from abc import ABC, abstractmethod
-from typing import List
+from abc import ABC
 
 from src.model.Provider import Provider
 from src.service.TokenService import get_custom_provider_token
@@ -8,16 +7,16 @@ from src.service.TokenService import get_custom_provider_token
 class ProviderService(ABC):
     """Interface for provider services like GitHub and GitLab."""
 
-    def get_user_organization_names(self, username) -> List[str]:
+    def get_user_organization_names(self, username) -> list[str]:
         pass
 
-    def get_user_owned_repo_names(self, username) -> List[str]:
+    def get_user_owned_repo_names(self, username) -> list[str]:
         pass
 
-    def get_user_collaboration_repo_names(self, username) -> List[str]:
+    def get_user_collaboration_repo_names(self, username) -> list[str]:
         pass
 
-    def get_organization_repo_names(self, organization) -> List[str]:
+    def get_organization_repo_names(self, organization) -> list[str]:
         pass
 
     def clone_repo(self, url, path):

@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-from enum import Enum
-
 from src.defines.ProviderType import ProviderType
 
 
@@ -10,5 +6,3 @@ class Provider:
         self.provider = provider
         self.url = url
         self.token = token
-
-
