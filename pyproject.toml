@@ -8,3 +8,13 @@ dependencies = [
     "PyGithub",
     "GitPython",
 ]
+
+[project.optional-dependencies]
+dev = [
+  "black",
+  "pytest",
+  "mypy",
+  "ruff",
+  "pre-commit",
+  "build",
+]
