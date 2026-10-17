@@ -70,29 +70,23 @@ def build_model(args):
                         if args.rename_strategy == RenameStrategy.IGNORE:
                             pass
                         elif args.rename_strategy == RenameStrategy.SHORTEST:
-                            new_repo = Repository(args.backup_name, username, provider, organization, repo,
-                                       provider.url + "/" + organization + "/" + repo, computed_path)
-                            repo_name_level = FlattenLevel.USER
+                            new_repo.path = computed_path
                             while computed_path in model:
-                                repo_name_level = FlattenLevel(repo_name_level.value - 1)
                                 compute_path(new_repo, FlattenLevel.ROOT.name in args.flatten_directories,
                                                               FlattenLevel.USER.name in args.flatten_directories,
                                                               FlattenLevel.PROVIDER.name in args.flatten_directories,
                                                               FlattenLevel.ORGANIZATION.name in args.flatten_directories,
-                                                              FlattenLevel(repo_name_level.value - 1))
+                                                              FlattenLevel(FlattenLevel.USER.value - 1))
                             computed_path = new_repo.path
                             model[computed_path] = new_repo
                         elif args.rename_strategy == RenameStrategy.SYSTEMATIC:
-                            repo1 = model.pop(computed_path)
-                            compute_path(repo1, FlattenLevel.ROOT.name in args.flatten_directories,
+                            repo_collisioned = model.pop(computed_path)
+                            compute_path(repo_collisioned, FlattenLevel.ROOT.name in args.flatten_directories,
                                                               FlattenLevel.USER.name in args.flatten_directories,
                                                               FlattenLevel.PROVIDER.name in args.flatten_directories,
                                                               FlattenLevel.ORGANIZATION.name in args.flatten_directories,
                                                               FlattenLevel.ROOT)
-                            model[repo1.path] = repo1
-
-                            new_repo = Repository(args.backup_name, username, provider, organization, repo,
-                                       provider.url + "/" + organization + "/" + repo)
+                            model[repo_collisioned.path] = repo_collisioned
                             compute_path(new_repo, FlattenLevel.ROOT.name in args.flatten_directories,
                                           FlattenLevel.USER.name in args.flatten_directories,
                                           FlattenLevel.PROVIDER.name in args.flatten_directories,
@@ -100,8 +94,23 @@ def build_model(args):
                                           FlattenLevel.ROOT)
                             model[new_repo.path] = new_repo
                         elif args.rename_strategy == RenameStrategy.SHORTEST_SYSTEMATIC:
-                            pass
-                            # TODO
+                            repo_collisioned = model.pop(computed_path)
+                            increasing_flatten_level = FlattenLevel.REPO
+                            while repo_collisioned.path == new_repo.path:
+                                compute_path(repo_collisioned, FlattenLevel.ROOT.name in args.flatten_directories,
+                                             FlattenLevel.USER.name in args.flatten_directories,
+                                             FlattenLevel.PROVIDER.name in args.flatten_directories,
+                                             FlattenLevel.ORGANIZATION.name in args.flatten_directories,
+                                             FlattenLevel(increasing_flatten_level.value))
+                                compute_path(new_repo, FlattenLevel.ROOT.name in args.flatten_directories,
+                                             FlattenLevel.USER.name in args.flatten_directories,
+                                             FlattenLevel.PROVIDER.name in args.flatten_directories,
+                                             FlattenLevel.ORGANIZATION.name in args.flatten_directories,
+                                             FlattenLevel.ROOT)
+                                increasing_flatten_level = FlattenLevel(increasing_flatten_level.value - 1)
+
+                            model[repo_collisioned.path] = repo_collisioned
+                            model[new_repo.path] = new_repo
 
     return model
 
