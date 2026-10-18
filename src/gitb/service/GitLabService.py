@@ -2,10 +2,10 @@ from gitlab import Gitlab
 from gitlab.const import AccessLevel
 from gitlab.v4.objects import GroupProject, Project, UserProject
 
-from src.defines.ProviderType import ProviderType
-from src.model.Provider import Provider
-from src.service.ProviderService import ProviderService, build_provider
-from src.service.TokenService import get_gitlab_official_token
+from gitb.defines.ProviderType import ProviderType
+from gitb.model.Provider import Provider
+from gitb.service.ProviderService import ProviderService, build_provider
+from gitb.service.TokenService import get_gitlab_official_token
 
 
 class GitLabService(ProviderService):

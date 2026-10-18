@@ -3,11 +3,11 @@ from github.Organization import Organization
 from github.PaginatedList import PaginatedList
 from github.Repository import Repository as GitHubRepository
 
-from src.defines.ProviderType import ProviderType
-from src.model.Provider import Provider
-from src.service.ArgumentParserService import infer_name
-from src.service.ProviderService import ProviderService, build_provider
-from src.service.TokenService import get_github_official_token
+from gitb.defines.ProviderType import ProviderType
+from gitb.model.Provider import Provider
+from gitb.service.ArgumentParserService import infer_name
+from gitb.service.ProviderService import ProviderService, build_provider
+from gitb.service.TokenService import get_github_official_token
 
 
 class GitHubService(ProviderService):

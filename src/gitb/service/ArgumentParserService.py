@@ -3,10 +3,10 @@ import os
 import re
 from datetime import datetime
 
-from src.defines.CollisionAction import CollisionAction
-from src.defines.FlattenLevel import FlattenLevel
-from src.defines.RenameStrategy import RenameStrategy
-from src.service.IOService import is_file_directory_writable, is_file_writable
+from gitb.defines.CollisionAction import CollisionAction
+from gitb.defines.FlattenLevel import FlattenLevel
+from gitb.defines.RenameStrategy import RenameStrategy
+from gitb.service.IOService import is_file_directory_writable, is_file_writable
 
 
 # TODO: prioritize argument to give priority
@@ -303,7 +303,7 @@ def _check_backup_folder(
     if not args.backup_folder:
         args.backup_folder = os.path.join(
             os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             ),
             "backup",
         )

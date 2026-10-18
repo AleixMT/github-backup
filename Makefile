@@ -1,4 +1,4 @@
-# Makefile for github-backup
+# Makefile for gitb
 # Usage examples:
 #   make venv
 #   make lint
@@ -26,7 +26,7 @@ PYTHON     := $(VENV_BIN)/python
 PIP        := $(VENV_BIN)/pip
 PRE_COMMIT := $(VENV_BIN)/pre-commit
 
-ENTRYPOINT := src.main
+PKG_NAME   := gitb
 
 # ---- build ----------------------------------------------------------------
 
@@ -40,14 +40,12 @@ $(VENV_BIN)/python:
 	@$(PYTHON_BIN) -m venv "$(VENV_DIR)"
 	@$(PYTHON_BIN) -m pip install --upgrade pip
 
-# Install runtime dependencies
-# The project has no console script, so we use a stamp file as the target.
-$(VENV_DIR)/.installed: $(VENV_BIN)/python pyproject.toml
+# Install runtime dependencies (creates gitb executable)
+$(VENV_BIN)/gitb: $(VENV_BIN)/python pyproject.toml
 	@$(PIP) install -e .
-	@touch "$@"
 
 # Install dev dependencies
-# We use a stamp file as the target because the egg-info PKG-INFO is also produced by
+# We use a stamp file as the target because the gitb executable is also produced by
 # 'make install', and binaries like 'bin/ruff' might not have their timestamp updated
 # by pip if they are already present (which would cause 'make fmt && make lint' to reinstall).
 $(VENV_DIR)/.installed-dev: $(VENV_BIN)/python pyproject.toml
@@ -63,7 +61,7 @@ $(VENV_BIN)/pyproject-build: $(VENV_BIN)/python
 venv: $(VENV_BIN)/python  ## Create virtualenv
 	@echo "✅ venv ready at $(VENV_DIR)"
 
-install: $(VENV_DIR)/.installed  ## Install package in editable mode
+install: $(VENV_BIN)/gitb  ## Install package in editable mode
 
 dev: $(VENV_DIR)/.installed-dev  ## Install package and dev dependencies
 
@@ -85,8 +83,8 @@ test: dev  ## Run tests
 # Pass arguments to the CLI via CMD, e.g.:
 #   make run CMD="AleixMT --exclude-gitlab"
 CMD ?= --help
-run: install  ## Run the github-backup CLI (python -m src.main)
-	@PYTHONUNBUFFERED=1 $(PYTHON) -m $(ENTRYPOINT) $(CMD)
+run: install  ## Run the gitb CLI (python -m gitb)
+	@PYTHONUNBUFFERED=1 $(PYTHON) -m $(PKG_NAME) $(CMD)
 
 # ---- maintenance ----------------------------------------------------------
 

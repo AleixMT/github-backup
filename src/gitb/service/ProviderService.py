@@ -3,9 +3,9 @@ from pathlib import Path
 
 from git import Repo
 
-from src.defines.ProviderType import ProviderType
-from src.model.Provider import Provider
-from src.service.TokenService import get_custom_provider_token
+from gitb.defines.ProviderType import ProviderType
+from gitb.model.Provider import Provider
+from gitb.service.TokenService import get_custom_provider_token
 
 
 class ProviderService(ABC):

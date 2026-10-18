@@ -1,5 +1,9 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "github-backup"
+name = "gitb"
 version = "0.1.0"
 description = "Clones all my repositories locally in order to make a backup"
 readme = "README.md"
@@ -9,6 +13,9 @@ dependencies = [
     "GitPython",
     "python-gitlab",
 ]
+
+[project.scripts]
+gitb = "gitb.main:main"
 
 [project.optional-dependencies]
 dev = [
@@ -23,12 +30,13 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
-pythonpath = ["."]
+pythonpath = ["src", "."]
 
 [tool.mypy]
 python_version = "3.14"
 strict = true
 explicit_package_bases = true
+mypy_path = "src"
 
 [tool.ruff]
 line-length = 120

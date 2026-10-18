@@ -1,6 +1,6 @@
-from src.service.GitHubService import GitHubService
-from src.service.ProviderService import ProviderService
-from src.service.TokenService import get_github_official_token
+from gitb.service.GitHubService import GitHubService
+from gitb.service.ProviderService import ProviderService
+from gitb.service.TokenService import get_github_official_token
 
 
 def get_my_gh_organization_names() -> None:

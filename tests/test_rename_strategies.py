@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 
-from src.defines.FlattenLevel import FlattenLevel
-from src.defines.RenameStrategy import RenameStrategy
-from src.model.Repository import Repository
-from src.service.RepositoryService import RENAME_LEVELS, resolve_collisions
+from gitb.defines.FlattenLevel import FlattenLevel
+from gitb.defines.RenameStrategy import RenameStrategy
+from gitb.model.Repository import Repository
+from gitb.service.RepositoryService import RENAME_LEVELS, resolve_collisions
 from tests.helpers import GITHUB, GITLAB, RepoFactory
 
 FLAT = {level for level in FlattenLevel if level is not FlattenLevel.REPO}

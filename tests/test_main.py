@@ -2,8 +2,8 @@ from argparse import Namespace
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from src.defines.RenameStrategy import RenameStrategy
-from src.main import build_model
+from gitb.defines.RenameStrategy import RenameStrategy
+from gitb.main import build_model
 from tests.helpers import GITLAB
 
 
@@ -19,8 +19,8 @@ def test_build_model_links_have_no_double_slash() -> None:
     )
 
     with (
-        patch("src.main.build_providers", return_value=[GITLAB]),
-        patch("src.main.build_provider_service", return_value=service),
+        patch("gitb.main.build_providers", return_value=[GITLAB]),
+        patch("gitb.main.build_provider_service", return_value=service),
     ):
         model = build_model(args)
 

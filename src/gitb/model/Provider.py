@@ -1,4 +1,4 @@
-from src.defines.ProviderType import ProviderType
+from gitb.defines.ProviderType import ProviderType
 
 
 class Provider:

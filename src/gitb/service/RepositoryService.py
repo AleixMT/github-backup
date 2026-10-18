@@ -1,9 +1,9 @@
 from collections.abc import Collection, Iterable
 from pathlib import Path
 
-from src.defines.FlattenLevel import FlattenLevel
-from src.defines.RenameStrategy import RenameStrategy
-from src.model.Repository import Repository
+from gitb.defines.FlattenLevel import FlattenLevel
+from gitb.defines.RenameStrategy import RenameStrategy
+from gitb.model.Repository import Repository
 
 SEPARATOR = "__"
 

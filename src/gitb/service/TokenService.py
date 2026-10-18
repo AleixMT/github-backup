@@ -4,8 +4,8 @@ import os
 import sys
 from collections.abc import Callable
 
-from src.defines.ProviderType import ProviderType
-from src.service.IOService import read_env_var, read_file
+from gitb.defines.ProviderType import ProviderType
+from gitb.service.IOService import read_env_var, read_file
 
 
 def get_github_official_token() -> str:
@@ -33,7 +33,7 @@ def get_token(token_name: str) -> str:
         lambda: read_file(
             os.path.join(
                 os.path.dirname(
-                    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                 ),
                 "secrets",
                 token_name,

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# github-backup is a bash software to backup all the repos of a GitHub user.
+# gitb is a bash software to backup all the repos of a GitHub user.
 #
 # Copyright (C) 2024 Aleix Mariné-Tena
 #

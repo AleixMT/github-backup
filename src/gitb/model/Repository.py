@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from src.model.Provider import Provider
+from gitb.model.Provider import Provider
 
 
 @dataclass

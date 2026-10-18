@@ -1,16 +1,25 @@
 from argparse import Namespace
 from pathlib import Path
 
-from src.defines.FlattenLevel import FlattenLevel
-from src.defines.ProviderType import ProviderType
-from src.model.Provider import Provider
-from src.model.Repository import Repository
-from src.service.ArgumentParserService import build_argument_parser, parse_arguments
-from src.service.GitHubService import GitHubService, build_github_official_provider
-from src.service.GitLabService import GitLabService, build_gitlab_official_provider
-from src.service.ProviderService import ProviderService, build_custom_provider
-from src.service.RepositoryService import resolve_collisions
-from src.service.UnparserService import print_summary
+from gitb.defines.FlattenLevel import FlattenLevel
+from gitb.defines.ProviderType import ProviderType
+from gitb.model.Provider import Provider
+from gitb.model.Repository import Repository
+from gitb.service.ArgumentParserService import (
+    build_argument_parser,
+    parse_arguments,
+)
+from gitb.service.GitHubService import (
+    GitHubService,
+    build_github_official_provider,
+)
+from gitb.service.GitLabService import (
+    GitLabService,
+    build_gitlab_official_provider,
+)
+from gitb.service.ProviderService import ProviderService, build_custom_provider
+from gitb.service.RepositoryService import resolve_collisions
+from gitb.service.UnparserService import print_summary
 
 """
 /backup/owner/provider/organization/repo
@@ -90,13 +99,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # Generate same date string for all entities
-    import os
-    import sys
-
-    sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-
-    # gh: ProviderService = GitHubService(get_github_official_token())
-    # print(gh.get_user_organization_names("AleixMT"))
-
     main()

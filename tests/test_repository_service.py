@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from src.defines.FlattenLevel import FlattenLevel
-from src.service.RepositoryService import compute_path
+from gitb.defines.FlattenLevel import FlattenLevel
+from gitb.service.RepositoryService import compute_path
 from tests.helpers import RepoFactory
 
 ALL_FOLDERS = {

@@ -1,8 +1,8 @@
 from collections.abc import Callable
 
-from src.defines.ProviderType import ProviderType
-from src.model.Provider import Provider
-from src.model.Repository import Repository
+from gitb.defines.ProviderType import ProviderType
+from gitb.model.Provider import Provider
+from gitb.model.Repository import Repository
 
 GITHUB = Provider(ProviderType.GITHUB, "https://github.com", "token")
 GITLAB = Provider(ProviderType.GITLAB, "https://gitlab.com/", "token")

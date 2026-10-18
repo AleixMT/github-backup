@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from src.service.IOService import is_file_directory_writable, is_file_writable
+from gitb.service.IOService import is_file_directory_writable, is_file_writable
 
 
 def test_existing_file_is_not_truncated(tmp_path: Path) -> None:

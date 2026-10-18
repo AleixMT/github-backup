@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from src.defines.CollisionAction import CollisionAction
-from src.defines.RenameStrategy import RenameStrategy
-from src.service.ArgumentParserService import (
+from gitb.defines.CollisionAction import CollisionAction
+from gitb.defines.RenameStrategy import RenameStrategy
+from gitb.service.ArgumentParserService import (
     build_argument_parser,
     infer_name,
     parse_arguments,
@@ -19,7 +19,7 @@ Parse = Callable[..., argparse.Namespace]
 def parse(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Parse:
     def run(*argv: str) -> argparse.Namespace:
         monkeypatch.setattr(
-            "sys.argv", ["github-backup", "user", "-b", str(tmp_path), *argv]
+            "sys.argv", ["gitb", "user", "-b", str(tmp_path), *argv]
         )
         return parse_arguments(build_argument_parser())
 

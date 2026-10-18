@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.service.GitLabService import GitLabService
+from gitb.service.GitLabService import GitLabService
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def gl() -> MagicMock:
 
 @pytest.fixture
 def service(gl: MagicMock) -> GitLabService:
-    with patch("src.service.GitLabService.Gitlab", return_value=gl):
+    with patch("gitb.service.GitLabService.Gitlab", return_value=gl):
         return GitLabService("token", "https://gitlab.com/")
 
 
@@ -30,7 +30,7 @@ def projects(*paths: str, namespace: str = "") -> list[SimpleNamespace]:
     ],
 )
 def test_url_gets_a_scheme(url: str, expected: str) -> None:
-    with patch("src.service.GitLabService.Gitlab") as gitlab:
+    with patch("gitb.service.GitLabService.Gitlab") as gitlab:
         GitLabService("token", url)
     gitlab.assert_called_once_with(expected, private_token="token")
 
