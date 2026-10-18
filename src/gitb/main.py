@@ -86,7 +86,9 @@ def clone_repos(model: dict[Path, Repository], backup_folder: str) -> None:
     for key, value in model.items():
         provider_service = build_provider_service(value.provider)
         print(value.link + "   " + backup_folder + "/" + str(key))
-        provider_service.clone_repo(value.link, Path(backup_folder) / key)
+        provider_service.clone_repo(
+            value.link, Path(backup_folder) / key, value.provider.token
+        )
 
 
 def main() -> None:

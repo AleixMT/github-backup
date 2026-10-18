@@ -11,6 +11,8 @@ from gitb.service.TokenService import get_gitlab_official_token
 class GitLabService(ProviderService):
     """Service for interacting with GitLab."""
 
+    clone_username = "oauth2"
+
     def __init__(self, access_token: str, url: str | None = None) -> None:
         if url and not url.startswith(("http://", "https://")):
             url = "https://" + url
